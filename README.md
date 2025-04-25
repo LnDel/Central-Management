@@ -55,5 +55,5 @@ Ce script est exécuté lorsqu'une commande de rollback est reçue. Il restaure 
 Assurez-vous que les Raspberry Pi et la machine exécutant l'application Qt sont sur le même réseau local.
 
 ### Problèmes rencontrés
-Nous avons d'abord essayé avec MQTT, car nous étions plus familier avec cet outil. Cependant, on s'est vite rendu compte qu'installer MQTT sur Qt était extrêmement laborieux, cela nous a fait perdre pas mal de temps. 
+Nous avons d'abord essayé avec MQTT, car nous étions plus familier avec cet outil. Cependant, on s'est vite rendu compte qu'installer MQTT sur Qt était extrêmement laborieux, cela nous a fait perdre pas mal de temps donc on a décidé de se tourner avec des serveurs HTTP.
 
