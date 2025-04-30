@@ -28,14 +28,33 @@ MainWindow::~MainWindow()
 void MainWindow::scanNetwork()
 {
     ui->piListWidget->clear();
+    ui->statusText->append("Scanning network using /ping...");
 
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    for (const QHostAddress &address : ipAddressesList) {
-        if (address.protocol() == QAbstractSocket::IPv4Protocol && address != QHostAddress(QHostAddress::LocalHost)) {
-            ui->statusText->append("Found local IP: " + address.toString());
-        }
+    QString baseIp = "192.168.215.";
+    for (int i = 1; i <= 254; ++i) {
+        QString ip = baseIp + QString::number(i);
+        QUrl url(QString("http://%1:5000/ping").arg(ip));
+
+        QNetworkRequest request(url);
+        QNetworkReply *reply = networkManager->get(request);
+
+        connect(reply, &QNetworkReply::finished, this, [this, reply, ip]() {
+            if (reply->error() == QNetworkReply::NoError) {
+                QByteArray responseData = reply->readAll();
+                QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
+                QJsonObject jsonObj = jsonDoc.object();
+
+                if (jsonObj["status"] == "alive" && jsonObj["device"] == "raspberry-pi") {
+                    QListWidgetItem *item = new QListWidgetItem("Raspberry Pi - " + ip);
+                    ui->piListWidget->addItem(item);
+                    ui->statusText->append("Detected Raspberry Pi at: " + ip);
+                }
+            }
+            reply->deleteLater();
+        });
     }
 }
+
 
 void MainWindow::selectUpdateFile()
 {
