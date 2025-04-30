@@ -21,6 +21,10 @@ def rollback():
     subprocess.run(["./rollback_script.sh"])
 
     return jsonify({"status": "Rollback initiated"}), 200
+    
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify({"status": "alive", "device": "raspberry-pi"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
