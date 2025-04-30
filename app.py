@@ -10,7 +10,7 @@ def update():
     filesize = data['filesize']
 
 
-    subprocess.run(["wget", "http://server_ip/path_to_update_file/" + filename])
+    #subprocess.run(["wget", "http://server_ip/path_to_update_file/" + filename])
     subprocess.run(["./update_script.sh", filename])
 
     return jsonify({"status": "Update initiated"}), 200
