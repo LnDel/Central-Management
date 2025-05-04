@@ -58,7 +58,7 @@ void MainWindow::scanNetwork()
 
 void MainWindow::selectUpdateFile()
 {
-    QString filePath = QFileDialog::getOpenFileName(this, "Select Update File", "", "Package Files (*.tar.gz *.zip *.sh)");
+    QString filePath = QFileDialog::getOpenFileName(this, "Select Update File", "");
     if (!filePath.isEmpty()) {
         ui->filePathLabel->setText(filePath);
     }
@@ -92,7 +92,8 @@ void MainWindow::startUpdate()
 
         QJsonObject json;
         json["filename"] = QFileInfo(updateFile).fileName();
-        json["filesize"] = updateFile.size();
+        json["filedata"] = QString(updateFile.readAll().toBase64());
+        updateFile.close();
 
         QJsonDocument doc(json);
         QByteArray data = doc.toJson();
@@ -100,7 +101,7 @@ void MainWindow::startUpdate()
         QNetworkReply *reply = networkManager->post(request, data);
         connect(reply, &QNetworkReply::finished, this, [this, reply, piAddress]() {
             if (reply->error() == QNetworkReply::NoError) {
-                ui->statusText->append("Update command sent to " + piAddress);
+                ui->statusText->append(piAddress + " updated successfully");
             } else {
                 ui->statusText->append("Error sending update command to " + piAddress);
             }
