@@ -3,6 +3,14 @@
 #include <QNetworkInterface>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <iostream>
+#include <string>
+#include <cstdio>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+QString getDefaultGateway();
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -30,7 +38,8 @@ void MainWindow::scanNetwork()
     ui->piListWidget->clear();
     ui->statusText->append("Scanning network using /ping...");
 
-    QString baseIp = "192.168.215.";
+    QString baseIp = getDefaultGateway()+".";
+
     for (int i = 1; i <= 254; ++i) {
         QString ip = baseIp + QString::number(i);
         QUrl url(QString("http://%1:5000/ping").arg(ip));
@@ -63,6 +72,45 @@ void MainWindow::selectUpdateFile()
         ui->filePathLabel->setText(filePath);
     }
 }
+
+
+QString getDefaultGateway() {
+    QFile routeFile("/proc/net/route");
+    if (!routeFile.open(QIODevice::ReadOnly)) {
+        qWarning() << "Erreur ouverture fichier:" << routeFile.errorString();
+        return QString();
+    }
+
+    QByteArray fileData = routeFile.readAll();
+    routeFile.close();
+
+    QTextStream in(fileData);
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        if (line.isEmpty()) continue;
+
+        QStringList parts = line.split('\t', Qt::SkipEmptyParts);
+        if (parts.size() >= 3) {
+            if (parts[1] == "00000000") {  // Route par défaut
+                bool ok;
+                quint32 gateway = parts[2].toUInt(&ok, 16);
+                if (!ok) continue;
+
+                struct in_addr addr;
+                addr.s_addr = htonl(gateway);
+                QStringList ip_addr = QString(inet_ntoa(addr)).split('.');
+                // Inversion de l'adresse IP + on garde seulement les 3 premiers octets
+                return QString("%1.%2.%3")
+                    .arg(ip_addr[3])
+                    .arg(ip_addr[2])
+                    .arg(ip_addr[1  ]);
+            }
+        }
+    }
+
+    return QString();
+}
+
 
 void MainWindow::startUpdate()
 {
