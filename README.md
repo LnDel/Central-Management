@@ -44,7 +44,7 @@ Assurez-vous que Python 3.x est installé sur chaque Raspberry Pi. Installez Fla
 Sur chaque Raspberry Pi, lancez le serveur Flask avec la commande suivante : python3 app.py
 Le serveur Flask écoutera sur le port 5000 et sera prêt à recevoir des commandes de mise à jour et de rollback.
 
-### Mise à Jour et de Rollback
+### Mise à Jour et Rollback
 Pour effectuer l'update sur les Raspberry, nous utilisons un fichier contenant une liste de packages linux. Nous envoyons une requête http à la raspberry sur la route /update avec la liste des packages en base 64 dans le body.
 Le serveur reçoit la requête, décode les données et procède à l'installation en utilisant la commande "sudo apt-get install <package>" pour chaque package de la requête.
 Nous enregistrons ensuite tous les packages ainsi que leur version dans le fichier "rollbackFile".  
