@@ -44,16 +44,18 @@ Assurez-vous que Python 3.x est installé sur chaque Raspberry Pi. Installez Fla
 Sur chaque Raspberry Pi, lancez le serveur Flask avec la commande suivante : python3 app.py
 Le serveur Flask écoutera sur le port 5000 et sera prêt à recevoir des commandes de mise à jour et de rollback.
 
-### Scripts de Mise à Jour et de Rollback
-1. update_script.sh
-Ce script est exécuté lorsqu'une commande de mise à jour est reçue. Il télécharge le fichier de mise à jour et exécute les opérations nécessaires.
+### Mise à Jour et de Rollback
+Pour effectuer l'update sur les Raspberry, nous utilisons un fichier contenant une liste de packages linux. Nous envoyons une requête http à la raspberry sur la route /update avec la liste des packages en base 64 dans le body.
+Le serveur reçoit la requête, décode les données et procède à l'installation en utilisant la commande "sudo apt-get install <package>" pour chaque package de la requête.
+Nous enregistrons ensuite tous les packages ainsi que leur version dans le fichier "rollbackFile".  
 
-2. rollback_script.sh
-Ce script est exécuté lorsqu'une commande de rollback est reçue. Il restaure le système à son état précédent.
+Lorsque le serveur reçoit une requête GET sur la route /rollback, il ouvre le fichier "rollbackFile" et réutilise la commande d'installation en ajoutant les version.  
+
+Cela fonctionne car lors d'un problème pendant une update, le fichier de rollback ne sera pas réécrit et aura donc les versions de la dernière update réussie. 
 
 ### Remarques
 Assurez-vous que les Raspberry Pi et la machine exécutant l'application Qt sont sur le même réseau local.
 
 ### Problèmes rencontrés
-Nous avons d'abord essayé avec MQTT, car nous étions plus familier avec cet outil. Cependant, on s'est vite rendu compte qu'installer MQTT sur Qt était extrêmement laborieux, cela nous a fait perdre pas mal de temps donc on a décidé de se tourner avec des serveurs HTTP.
-
+- Nous avons d'abord essayé avec MQTT, car nous étions plus familier avec cet outil. Cependant, on s'est vite rendu compte qu'installer MQTT sur Qt était extrêmement laborieux, cela nous a fait perdre pas mal de temps donc on a décidé de se tourner avec des serveurs HTTP.
+- Nous n'avions pas de Raspberry chez nous donc nous avons testé en faisant tourner un serveur sur nos PC. Seules les personnes du groupe ayant encore les PFE et qui vont donc à l'école ont pu tester en conditions réelles avec les Raspberry.
