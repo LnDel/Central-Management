@@ -1,3 +1,22 @@
+/**
+ * @file MainWindow.cpp
+ * @brief Implémentation de la classe MainWindow.
+ *
+ * Contient les définitions des méthodes pour :
+ * - le scan du réseau local à la recherche de Raspberry Pi,
+ * - le téléchargement et l'envoi de fichiers de mise à jour,
+ * - la commande de rollback.
+ *
+ * Ce module interagit avec les widgets définis dans MainWindow.ui
+ * et utilise des appels HTTP via Qt pour communiquer avec les Raspberry Pi.
+ *
+ * @see MainWindow.h
+ * @see MainWindow.ui
+ *
+ * @date 2025-05-05
+ */
+
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QNetworkInterface>
@@ -10,6 +29,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/**
+ * @brief Récupère la passerelle par défaut du système.
+ * 
+ * Lit le fichier `/proc/net/route` pour déterminer l'adresse IP de la passerelle par défaut,
+ * et retourne les trois premiers octets inversés de cette adresse (préparation pour un scan réseau).
+ * 
+ * @return QString Préfixe IP de la passerelle (ex: "192.168.1").
+ */
 QString getDefaultGateway();
 
 MainWindow::MainWindow(QWidget *parent)
@@ -17,7 +44,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
     networkManager = new QNetworkAccessManager(this);
 
     connect(ui->scanButton, &QPushButton::clicked, this, &MainWindow::scanNetwork);
@@ -38,7 +64,7 @@ void MainWindow::scanNetwork()
     ui->piListWidget->clear();
     ui->statusText->append("Scanning network using /ping...");
 
-    QString baseIp = getDefaultGateway()+".";
+    QString baseIp = getDefaultGateway() + ".";
 
     for (int i = 1; i <= 254; ++i) {
         QString ip = baseIp + QString::number(i);
@@ -64,7 +90,6 @@ void MainWindow::scanNetwork()
     }
 }
 
-
 void MainWindow::selectUpdateFile()
 {
     QString filePath = QFileDialog::getOpenFileName(this, "Select Update File", "");
@@ -72,7 +97,6 @@ void MainWindow::selectUpdateFile()
         ui->filePathLabel->setText(filePath);
     }
 }
-
 
 QString getDefaultGateway() {
     QFile routeFile("/proc/net/route");
@@ -99,18 +123,16 @@ QString getDefaultGateway() {
                 struct in_addr addr;
                 addr.s_addr = htonl(gateway);
                 QStringList ip_addr = QString(inet_ntoa(addr)).split('.');
-                // Inversion de l'adresse IP + on garde seulement les 3 premiers octets
                 return QString("%1.%2.%3")
                     .arg(ip_addr[3])
                     .arg(ip_addr[2])
-                    .arg(ip_addr[1  ]);
+                    .arg(ip_addr[1]);
             }
         }
     }
 
     return QString();
 }
-
 
 void MainWindow::startUpdate()
 {
